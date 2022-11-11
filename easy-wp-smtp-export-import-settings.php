@@ -63,6 +63,34 @@ class EasyWPSMTP_ExportImport_Main {
 			} 
 		}
 	}
+
+	public function validate_log_file_name($file_name)
+	{
+		
+		$folder_dir_filename = explode("\\",$file_name);
+
+		
+						
+		if(sizeof($folder_dir_filename)==2)
+		{
+		
+			if($folder_dir_filename[0]=="logs")
+			{
+				//checking if file extention is .txt
+				$log_file_ext=explode(".",$folder_dir_filename[1]);
+
+				$log_file_ext = $log_file_ext[sizeof($log_file_ext)-1];
+
+				
+				if($log_file_ext=="txt")
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 	
 	public function admin_init()
 	{
@@ -89,6 +117,7 @@ class EasyWPSMTP_ExportImport_Main {
 				$filename = 'easy_wp_smtp_settings.json';
 				header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 				header( 'Content-Type: application/json' );
+			
 				echo wp_json_encode( $out );
 				exit;
 			}
@@ -133,6 +162,17 @@ class EasyWPSMTP_ExportImport_Main {
 						echo __("Error importing the settings file. Please re-export the file",'easy-wp-smtp');
 						wp_die();
 					}
+
+					//validating log file name					
+					if(isset($data["swpsmtp_options"]) && isset($data["swpsmtp_options"]["smtp_settings"]) && isset($data["swpsmtp_options"]["smtp_settings"]["log_file_name"]))
+					{
+						$log_file_name = $data["swpsmtp_options"]["smtp_settings"]["log_file_name"];
+						if($this->validate_log_file_name($log_file_name)==false)
+						{
+							echo __("Error importing the settings file. Please re-export the file",'easy-wp-smtp');
+							wp_die();
+						}						
+					}					
 
 					update_option( 'swpsmtp_options', $data['swpsmtp_options'] );
 					update_option( 'swpsmtp_pass_encrypted', $data['swpsmtp_pass_encrypted'] );
